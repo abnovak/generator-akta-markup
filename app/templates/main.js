@@ -1,1 +1,6 @@
-main.js
+/**
+ * Main.js Template file
+ */
+$(function() {
+	
+});

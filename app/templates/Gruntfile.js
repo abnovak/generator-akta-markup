@@ -95,6 +95,14 @@ module.exports = function(grunt) {
                 //   default: [],
                 exclude: []
             }
+        },
+        execute: {
+            deploy: {
+                src: ['build.js']
+            }
+        },
+        clean: {
+            build: ["build/"]
         }
     });
 
@@ -104,7 +112,5 @@ module.exports = function(grunt) {
 
     grunt.registerTask('stop-server', ['express:dev:stop']);
 
-    grunt.registerTask('build', 'Build your templates.', function() {
-
-    });
+    grunt.registerTask('build', 'Building your templates.', ['express:dev', 'execute:deploy', 'express:dev:stop']);
 };
