@@ -13,20 +13,113 @@ module.exports = function(grunt) {
     require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
     grunt.initConfig({
-        watch: {
-            options: {
-                nospawn: true,
-                livereload: LIVERELOAD_PORT
+        exec: {
+            bower: {
+                cmd: 'bower install',
+                stdOut: true
             },
-            livereload: {
-                files: [
-                    'app/**/*',
-                    'app/templates/**/*',
-                    'app/js/**/*',
-                    'app/css/**/*',
-                    'app/img/**/*'
-                ]
+            npm: {
+                cmd: 'npm install',
+                stdOut: true
             }
+        },
+        bower: {
+            install: {
+                options: {
+                    targetDir: './app/lib',
+                    layout: 'byComponent',
+                    install: true,
+                    verbose: false,
+                    cleanTargetDir: false,
+                    cleanBowerDir: false,
+                    bowerOptions: {}
+                }
+            }
+        },
+        compass: { // Task
+            // dist: { // Target
+            //     options: { // Target options
+            //         app: 'stand_alone',
+            //         basePath: 'app',
+            //         sassDir: ['scss', 'scss/bootstrap', 'lib/bootstrap-sass/scss'],
+            //         cssDir: 'css',
+            //         specify: 'main'
+            //     }
+            // },
+            dev: { // Another target
+                options: {
+                    app: 'stand_alone',
+                    basePath: '.',
+                    sassDir: ['app/scss'],
+                    importPath: ['app/lib/bootstrap-sass/scss/', 'app/lib/bootstrap-sass-datepicker/', 'app/scss/bootstrap_overrides'],
+                    cssDir: 'app/css',
+                    imagesDir: 'app/images',
+                    fontsDir: 'app/fonts',
+                    javascriptsDir: 'app/js',
+                    specify: ['app/scss/main.scss'],
+                    outputStyle: 'expanded',
+                    trace: true,
+                    debugInfo: false,
+                    relativeAssets: true
+                }
+            }
+        },
+        bless: {
+            css: {
+                options: {
+                    // Task-specific options go here.
+                    imports: false
+                },
+                files: {
+                    // Target-specific file lists and/or options go here.
+                    'app/css/main.css':'app/css/main.css'
+                }
+            }
+        },
+        watch: {
+            html: {
+                options: {
+                    livereload: true
+                },
+                files: [
+                    'app/templates/**/*',
+                    'app/templates/layouts/**/*',
+                    'app/templates/partials/**/*'
+                ],
+            },
+            js: {
+                options: {
+                    livereload: true
+                },
+                files: [
+                    'app/js/**/*',
+                    'app/js/plugins/**/*'
+                ],
+            },
+            sass: {
+                options: {
+                    livereload: false
+                },
+                files: [
+                    'app/scss/**/*',
+                ],
+                tasks: ['compile-style'],
+            },
+            css: {
+                options: {
+                    livereload: true
+                },
+                files: ['app/css/main.css'],
+                tasks: [],
+            }
+            // livereload: {
+            //     files: [
+
+
+            //         'app/scss/**/*',
+            //         'app/lib/bootstrap-sass/example/**/*'
+            //     ]
+            // }
         },
         connect: {
             options: {
@@ -56,44 +149,15 @@ module.exports = function(grunt) {
             },
             dev: {
                 options: {
-                    script: 'server.js'
+                    script: 'server.js',
+                    node_env: 'dev'
                 }
-            }
-        },
-        'bower-install': {
-
-            target: {
-
-                // Point to the html file that should be updated
-                // when you run `grunt bower-install`
-                html: 'app/templates/index.html',
-
-                // Optional:
-                // ---------
-
-                // If your file paths shouldn't contain a certain
-                // portion of a url, it can be excluded
-                //
-                //   default: ''
-                ignorePath: 'app/',
-
-                // Customize how your stylesheets are included on
-                // your page.
-                //
-                //   default: '<link rel="stylesheet" href="{{filePath}}" />'
-                cssPattern: '<link href="{{filePath}}" rel="stylesheet">',
-
-                // Customize how your <script>s are included into
-                // your HTML file.
-                //
-                //   default: '<script src="{{filePath}}"></script>'
-                jsPattern: '<script type="text/javascript" src="{{filePath}}"></script>',
-
-                // An array of strings or regular expressions to
-                // exclude from your HTML file.
-                //
-                //   default: [],
-                exclude: []
+            },
+            build: {
+                options: {
+                    script: 'server.js',
+                    node_env: 'build'
+                }
             }
         },
         execute: {
@@ -102,15 +166,25 @@ module.exports = function(grunt) {
             }
         },
         clean: {
-            build: ["build/"]
+            build: ["build/", "dist/"]
         }
     });
 
+    // grunt.event.on('watch', function(action, filepath) {
+    //     grunt.task.run(['compass:dev']);
+    // });
+
     grunt.registerTask('default', ['server']);
 
-    grunt.registerTask('server', ['express:dev', 'connect:livereload', 'watch']);
+    grunt.registerTask('setup', ['exec:bower', 'exec:npm']);
+
+    grunt.registerTask('server', ['compile-style', 'express:dev', 'connect:livereload', 'watch']);
 
     grunt.registerTask('stop-server', ['express:dev:stop']);
 
-    grunt.registerTask('build', 'Building your templates.', ['express:dev', 'execute:deploy', 'express:dev:stop']);
+    grunt.registerTask('build', 'Building your templates.', ['clean', 'compile-style', 'express:build', 'execute:deploy', 'express:build:stop']);
+
+    grunt.registerTask('compile-style', ['compass:dev', 'bless']);
+
+    // grunt.registerTask('build', 'Building your templates.', ['execute:deploy']);
 };

@@ -1,7 +1,16 @@
 {
-  "name": "<%= _.slugify(appName) %>",
-  "version": "0.0.1",
-  "dependencies": {
-  	"jquery": "~1.10.2"
-  }
+    "name": "<%= _.slugify(appName) %>",
+    "version": "0.0.1",
+    "dependencies": {
+        "jquery": "~1.10.2",
+        "bootstrap-sass-official": "~3.1.1"
+    },
+    "exportsOverride": {
+        "bootstrap-sass-official": {
+            "js": "dist/js/bootstrap.min.js",
+            "scss": "lib/*.scss",
+            "dist": "dist",
+            "example": "examples/theme/*.*"
+        }
+    }
 }
